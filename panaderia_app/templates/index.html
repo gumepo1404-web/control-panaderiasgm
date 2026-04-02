@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neza 2 | Control Híbrido Turbo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    
+    <style>
+        :root {
+            --bg-app: #e2e8f0; 
+            --nav-dark: #1e293b; 
+            --accent-green: #22c55e;
+            --accent-blue: #0ea5e9;
+            --text-dark: #334155;
+        }
+
+        body { 
+            background-color: var(--bg-app); 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            color: var(--text-dark);
+            padding-bottom: 140px;
+        }
+
+        .navbar-app {
+            background: var(--nav-dark);
+            color: white;
+            padding: 1.2rem 2.5rem;
+            border-bottom: 4px solid var(--accent-blue);
+        }
+
+        .card {
+            background: white;
+            border: none;
+            border-radius: 18px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+
+        .card-header {
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 12px 20px;
+            font-weight: 800;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .badge-subtotal {
+            background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+            color: white;
+            font-size: 1.3rem !important;
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-weight: 800;
+        }
+
+        .table thead th { 
+            background: #f1f5f9; 
+            color: #64748b; 
+            text-transform: uppercase; 
+            font-size: 0.7rem; 
+            padding: 10px;
+        }
+
+        input[type="number"], input[type="text"], .form-select {
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-weight: 700;
+        }
+
+        input:focus {
+            border-color: var(--accent-blue) !important;
+            box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.15) !important;
+            outline: none;
+            background-color: #f0f9ff;
+        }
+
+        .i-pan { width: 60px; text-align: center; height: 35px; }
+
+        /* Contenedor con scroll para las 20 filas */
+        .scroll-frio {
+            max-height: 450px;
+            overflow-y: auto;
+        }
+
+        .resumen-fixed {
+            background: var(--nav-dark);
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            padding: 15px 40px;
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.2);
+            z-index: 1100;
+            color: white;
+            border-top: 4px solid var(--accent-green);
+        }
+
+        .neta-val {
+            font-size: 2rem;
+            font-weight: 900;
+            color: #fbbf24; 
+        }
+
+        .btn-guardar {
+            background: var(--accent-green);
+            color: #064e3b;
+            font-weight: 800;
+            border-radius: 12px;
+            padding: 12px;
+            border: none;
+            width: 100%;
+        }
+
+        .header-section { border-left: 6px solid var(--accent-blue); }
+    </style>
+</head>
+<body>
+
+<div class="navbar-app d-flex justify-content-between align-items-center">
+    <div>
+        <h4 class="m-0 fw-bold"><i class="bi bi-lightning-charge-fill text-warning me-2"></i>NEZA 2 <span class="text-info">TURBO</span></h4>
+        <small class="text-secondary opacity-75">Corte de Caja Eficiente</small>
+    </div>
+    <div class="d-flex gap-3">
+        <div class="bg-white bg-opacity-10 p-2 rounded-3 border border-secondary border-opacity-25 text-center">
+            <select name="dia" class="form-select form-select-sm bg-transparent border-0 text-white p-0 fw-bold" style="width:110px">
+                <option class="text-dark">LUNES</option><option class="text-dark">MARTES</option><option class="text-dark">MIÉRCOLES</option>
+                <option class="text-dark">JUEVES</option><option class="text-dark">VIERNES</option><option class="text-dark">SÁBADO</option><option class="text-dark">DOMINGO</option>
+            </select>
+        </div>
+        <div class="bg-white bg-opacity-10 p-2 rounded-3 border border-secondary border-opacity-25 text-center">
+            <input type="date" name="fecha" class="bg-transparent border-0 text-white p-0 small fw-bold" required>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid mt-4 px-lg-5">
+    <form method="POST">
+        
+        <div class="card p-3 mb-4">
+            <div class="row g-3 align-items-center">
+                <div class="col-md-3 border-end">
+                    <select name="turno" class="form-select border-0 fs-5 fw-bold"><option>MATUTINO</option><option>VESPERTINO</option></select>
+                </div>
+                <div class="col-md-9 ps-md-4">
+                    <input type="text" name="empleado" class="form-control border-0 fs-5 fw-bold" placeholder="Nombre del Despachador..." required>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            {% for cat, lista in inventario.items() %}
+            <div class="col-xl-6">
+                <div class="card header-section">
+                    <div class="card-header">
+                        <span class="fs-5 text-dark fw-bold">{{ cat }}</span>
+                        <span class="badge-subtotal">$ <span class="t-cat-dinero">0.00</span></span>
+                    </div>
+                    <div class="card-body p-0 text-center">
+                        {% set precio_cat = cat.split('$')[1].split()[0] if '$' in cat else 0 %}
+                        <table class="table align-middle">
+                            <thead>
+                                <tr><th class="text-start ps-4">Producto</th><th>Inicial</th><th>Entrada</th><th>Final</th><th class="table-info">Venta</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for pan in (lista if lista is iterable and lista is not mapping else lista.keys()) %}
+                                {% set precio_pan = lista[pan] if cat == "OTROS" else precio_cat %}
+                                <tr class="fila-pan" data-precio="{{ precio_pan }}">
+                                    <td class="text-start ps-4 fw-bold text-secondary">{{ pan }}</td>
+                                    <td><input type="number" class="i-ini i-pan" placeholder="-" oninput="calcFila(this)"></td>
+                                    <td><input type="number" class="i-ent i-pan" placeholder="-" oninput="calcFila(this)"></td>
+                                    <td><input type="number" class="i-fin i-pan" placeholder="-" oninput="calcFila(this)"></td>
+                                    <td class="fw-bold text-primary v-fila fs-6 bg-info bg-opacity-10">0</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="card border-start border-5 border-success">
+                    <div class="card-header bg-white fw-bold">🛍️ BOLSAS ($1.00)</div>
+                    <div class="card-body">
+                        {% for i in [1,2,3] %}
+                        <div class="fila-bolsa mb-3 p-2 bg-light rounded-3">
+                            <div class="d-flex justify-content-between fw-bold mb-1"><small>Folio {{i}}</small><span class="text-success">$ <span class="b-v">0.00</span></span></div>
+                            <div class="d-flex gap-2">
+                                <input type="number" class="form-control form-control-sm b-ini" placeholder="Inicio" oninput="calcBolsas()">
+                                <input type="number" class="form-control form-control-sm b-fin" placeholder="Fin" oninput="calcBolsas()">
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-8">
+                <div class="card border-start border-5 border-danger">
+                    <div class="card-header bg-white fw-bold">❄️ FRÍO (F) / 🚚 TRASPASOS (T)</div>
+                    <div class="card-body p-0">
+                        <div class="scroll-frio">
+                            <table class="table table-sm align-middle mb-0">
+                                <thead>
+                                    <tr><th class="ps-3" style="width:70px">Tipo</th><th>Producto</th><th style="width:80px">Cant.</th><th class="text-end pe-4">Monto</th></tr>
+                                </thead>
+                                <tbody>
+                                    <datalist id="panesList">{% for p in lista_panes %}<option value="{{p}}">{% endfor %}</datalist>
+                                    {% for i in range(20) %}
+                                    <tr class="fila-frio">
+                                        <td class="ps-2">
+                                            <select class="form-select form-select-sm p-1 fw-bold f-tipo" onchange="calcDetalleFrio()">
+                                                <option value="F">F</option><option value="T">T</option>
+                                            </select>
+                                        </td>
+                                        <td><input type="text" list="panesList" class="form-control form-control-sm f-nombre" placeholder="Pan..." onchange="calcDetalleFrio()"></td>
+                                        <td><input type="number" class="form-control form-control-sm f-cant" placeholder="0" oninput="calcDetalleFrio()"></td>
+                                        <td class="text-end fw-bold text-danger pe-4">$ <span class="f-sub">0.00</span></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-start border-5 border-secondary mt-4">
+            <div class="card-header fw-bold">💸 GASTOS</div>
+            <div class="card-body">
+                <div class="row g-2">
+                    {% for i in range(10) %}
+                    <div class="col-md-6">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-white">{{i+1}}</span>
+                            <input type="text" class="form-control" placeholder="Concepto...">
+                            <input type="number" class="form-control fw-bold text-danger g-monto" style="max-width: 90px;" placeholder="$0" oninput="calcGastos()">
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="resumen-fixed">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <div class="row text-center">
+                        <div class="col-3 border-end border-secondary border-opacity-50"><small class="text-secondary d-block">PAN</small><span id="view_pan" class="fw-bold">$ 0.00</span></div>
+                        <div class="col-3 border-end border-secondary border-opacity-50"><small class="text-success d-block">BOLSAS</small><span id="view_bolsa" class="fw-bold text-success">$ 0.00</span></div>
+                        <div class="col-3 border-end border-secondary border-opacity-50"><small class="text-danger d-block">RESTAS</small><span id="view_restas" class="fw-bold text-danger">$ 0.00</span></div>
+                        <div class="col-3"><small class="text-info fw-bold d-block">NETA</small><span id="res_neta_display" class="neta-val">$ 0.00</span></div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="row g-2">
+                        <div class="col-6"><input type="number" name="efectivo" id="res_efectivo" class="form-control fw-bold" placeholder="EFECTIVO" required oninput="calcFinal()"></div>
+                        <div class="col-6"><input type="text" id="res_dif" class="form-control fw-bold border-0 bg-white bg-opacity-10 text-white" readonly placeholder="DIF."></div>
+                        <div class="col-12"><button type="submit" class="btn btn-guardar">GUARDAR CORTE</button></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <input type="hidden" name="h_pan" id="h_pan"><input type="hidden" name="h_bolsa" id="h_bolsa">
+        <input type="hidden" name="h_frio" id="h_frio"><input type="hidden" name="gastos" id="res_gastos">
+    </form>
+</div>
+
+<script>
+// NAVEGACIÓN VERTICAL TURBO
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+        const curr = document.activeElement;
+        if (curr.classList.contains('i-pan')) {
+            e.preventDefault();
+            const table = curr.closest('table');
+            const inputs = Array.from(table.querySelectorAll('.i-pan'));
+            const idx = inputs.indexOf(curr);
+            const next = inputs[idx + 3];
+            if (next) { next.focus(); }
+            else {
+                const tabs = Array.from(document.querySelectorAll('.fila-pan').closest('table'));
+                const nextTab = tabs[tabs.indexOf(table) + 1];
+                if (nextTab) nextTab.querySelectorAll('.i-pan')[idx % 3].focus();
+            }
+        }
+    }
+});
+
+document.querySelectorAll('input').forEach(i => i.addEventListener('focus', () => i.select()));
+
+const preciosJS = {
+    {% for cat, lista in inventario.items() %}
+        {% set p = cat.split('$')[1].split()[0] if '$' in cat else 0 %}
+        {% for pan in (lista if lista is iterable and lista is not mapping else lista.keys()) %}
+            "{{pan}}": {{ lista[pan] if cat == "OTROS" else p }},
+        {% endfor %}
+    {% endfor %}
+};
+
+function calcFila(el) {
+    let row = el.closest('.fila-pan');
+    let v = (parseFloat(row.querySelector('.i-ini').value)||0) + (parseFloat(row.querySelector('.i-ent').value)||0) - (parseFloat(row.querySelector('.i-fin').value)||0);
+    row.querySelector('.v-fila').innerText = v > 0 ? v : 0;
+    let t = 0; el.closest('table').querySelectorAll('.fila-pan').forEach(r => {
+        t += (parseFloat(r.querySelector('.v-fila').innerText)||0) * parseFloat(r.getAttribute('data-precio'));
+    });
+    el.closest('.card').querySelector('.t-cat-dinero').innerText = t.toFixed(2);
+    calcFinal();
+}
+
+function calcBolsas() {
+    let tb = 0; document.querySelectorAll('.fila-bolsa').forEach(r => {
+        let i = parseFloat(r.querySelector('.b-ini').value)||0, f = parseFloat(r.querySelector('.b-fin').value)||0;
+        let c = (i > 0 || f > 0) ? (f >= i ? (f - i) : (200 - i) + f) : 0;
+        r.querySelector('.b-v').innerText = c.toFixed(2); tb += c;
+    });
+    document.getElementById('h_bolsa').value = tb;
+    document.getElementById('view_bolsa').innerText = '$ ' + tb.toFixed(2);
+    calcFinal();
+}
+
+function calcDetalleFrio() {
+    let df = 0; document.querySelectorAll('.fila-frio').forEach(r => {
+        let n = r.querySelector('.f-nombre').value, c = parseFloat(r.querySelector('.f-cant').value)||0;
+        let sub = c * (preciosJS[n] || 0); r.querySelector('.f-sub').innerText = sub.toFixed(2); df += sub;
+    });
+    document.getElementById('h_frio').value = df; calcFinal();
+}
+
+function calcGastos() {
+    let tg = 0; document.querySelectorAll('.g-monto').forEach(i => tg += parseFloat(i.value)||0);
+    document.getElementById('res_gastos').value = tg; calcFinal();
+}
+
+function calcFinal() {
+    let p = 0; document.querySelectorAll('.t-cat-dinero').forEach(s => p += parseFloat(s.innerText)||0);
+    let b = parseFloat(document.getElementById('h_bolsa').value)||0;
+    let f = parseFloat(document.getElementById('h_frio').value)||0;
+    let g = parseFloat(document.getElementById('res_gastos').value)||0;
+    let e = parseFloat(document.getElementById('res_efectivo').value)||0;
+    let n = (p + b) - f - g; let d = e - n;
+    document.getElementById('view_pan').innerText = '$ ' + p.toFixed(2);
+    document.getElementById('view_restas').innerText = '$ ' + (f + g).toFixed(2);
+    document.getElementById('res_neta_display').innerText = '$ ' + n.toFixed(2);
+    document.getElementById('res_dif').value = '$ ' + d.toFixed(2);
+    document.getElementById('res_dif').style.color = d < 0 ? '#fb7185' : '#4ade80';
+    document.getElementById('h_pan').value = p;
+}
+</script>
+</body>
+</html>
